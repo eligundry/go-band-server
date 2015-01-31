@@ -5,7 +5,7 @@ import thread
 import time
 
 # Import the Leap Code
-sys.path.insert(0, os.path.join('/', 'lib', 'Leap'))
+sys.path.insert(0, os.path.abspath(os.path.join('lib')))
 
 import Leap
 from Leap import CircleGesture, KeyTapGesture, ScreenTapGesture, SwipeGesture
