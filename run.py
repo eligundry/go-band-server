@@ -45,14 +45,20 @@ class GoBandListener(Leap.Listener):
             SwipeLeftCommand(),
             SwipeUpCommand(),
             SwipeDownCommand(),
-            ClockWiseCommand(),
-            CounterClockWiseCommand(),
+            # ClockWiseCommand(),
+            # CounterClockWiseCommand(),
         ]
 
     def on_connect(self, controller):
         print "Connected"
+        # Register events
         controller.enable_gesture(Leap.Gesture.TYPE_CIRCLE)
         controller.enable_gesture(Leap.Gesture.TYPE_SWIPE)
+
+        # Tweak the default speeds
+        controller.config.set("Gesture.Swipe.MinLength", 100.0)
+        controller.config.set("Gesture.Swipe.MinVelocity", 750)
+        controller.config.save()
 
     def on_frame(self, controller):
         frame = controller.frame()
@@ -60,8 +66,8 @@ class GoBandListener(Leap.Listener):
         if not frame.hands.is_empty:
             for command in self.commands:
                 if command.applicable(frame):
-                    print command.name
-                    return command.execute()
+                    print command
+                    return
 
     def on_disconnect(self, controller):
         print "Exiting..."
@@ -75,7 +81,8 @@ class SwipeUpLeftCommand():
 
     def __str__(self):
         return '%s (%s): [%s, %s, %s]' % (
-            self.name, self.code, self.swipe[0], self.swipe[1], self.swipe[2]
+            self.name, self.code, self.swipe.direction[0],
+            self.swipe.direction[1], self.swipe.direction[2]
         )
 
     def applicable(self, frame):
@@ -99,7 +106,8 @@ class SwipeUpRightCommand():
 
     def __str__(self):
         return '%s (%s): [%s, %s, %s]' % (
-            self.name, self.code, self.swipe[0], self.swipe[1], self.swipe[2]
+            self.name, self.code, self.swipe.direction[0],
+            self.swipe.direction[1], self.swipe.direction[2]
         )
 
     def applicable(self, frame):
@@ -123,7 +131,8 @@ class SwipeDownLeftCommand():
 
     def __str__(self):
         return '%s (%s): [%s, %s, %s]' % (
-            self.name, self.code, self.swipe[0], self.swipe[1], self.swipe[2]
+            self.name, self.code, self.swipe.direction[0],
+            self.swipe.direction[1], self.swipe.direction[2]
         )
 
     def applicable(self, frame):
@@ -147,7 +156,8 @@ class SwipeDownRightCommand():
 
     def __str__(self):
         return '%s (%s): [%s, %s, %s]' % (
-            self.name, self.code, self.swipe[0], self.swipe[1], self.swipe[2]
+            self.name, self.code, self.swipe.direction[0],
+            self.swipe.direction[1], self.swipe.direction[2]
         )
 
     def applicable(self, frame):
@@ -171,7 +181,8 @@ class SwipeUpCommand():
 
     def __str__(self):
         return '%s (%s): [%s, %s, %s]' % (
-            self.name, self.code, self.swipe[0], self.swipe[1], self.swipe[2]
+            self.name, self.code, self.swipe.direction[0],
+            self.swipe.direction[1], self.swipe.direction[2]
         )
 
     def applicable(self, frame):
@@ -194,7 +205,8 @@ class SwipeDownCommand():
 
     def __str__(self):
         return '%s (%s): [%s, %s, %s]' % (
-            self.name, self.code, self.swipe[0], self.swipe[1], self.swipe[2]
+            self.name, self.code, self.swipe.direction[0],
+            self.swipe.direction[1], self.swipe.direction[2]
         )
 
     def applicable(self, frame):
@@ -217,7 +229,8 @@ class SwipeRightCommand():
 
     def __str__(self):
         return '%s (%s): [%s, %s, %s]' % (
-            self.name, self.code, self.swipe[0], self.swipe[1], self.swipe[2]
+            self.name, self.code, self.swipe.direction[0],
+            self.swipe.direction[1], self.swipe.direction[2]
         )
 
     def applicable(self, frame):
@@ -240,7 +253,8 @@ class SwipeLeftCommand():
 
     def __str__(self):
         return '%s (%s): [%s, %s, %s]' % (
-            self.name, self.code, self.swipe[0], self.swipe[1], self.swipe[2]
+            self.name, self.code, self.swipe.direction[0],
+            self.swipe.direction[1], self.swipe.direction[2]
         )
 
     def applicable(self, frame):
@@ -263,7 +277,8 @@ class ClockWiseCommand():
 
     def __str__(self):
         return '%s (%s): [%s, %s, %s]' % (
-            self.name, self.code, self.circle[0], self.circle[1], self.circle[2]
+            self.name, self.code, self.circle.direction[0],
+            self.circle.direction[1], self.circle.direction[2]
         )
 
     def applicable(self, frame):
@@ -272,7 +287,7 @@ class ClockWiseCommand():
         return (
             self.circle.state == Leap.Gesture.STATE_STOP and
             self.circle.type == Leap.Gesture.TYPE_CIRCLE and
-            self.circle.pointable.direction.angle_to(circle.normal) <= Leap.PI/4
+            self.circle.pointable.direction.angle_to(self.circle.normal) <= Leap.PI/4
         )
 
     def execute(self):
@@ -286,7 +301,8 @@ class CounterClockWiseCommand():
 
     def __str__(self):
         return '%s (%s): [%s, %s, %s]' % (
-            self.name, self.code, self.circle[0], self.circle[1], self.circle[2]
+            self.name, self.code, self.circle.direction[0],
+            self.circle.direction[1], self.circle.direction[2]
         )
 
     def applicable(self, frame):
@@ -295,7 +311,7 @@ class CounterClockWiseCommand():
         return (
             self.circle.state == Leap.Gesture.STATE_STOP and
             self.circle.type == Leap.Gesture.TYPE_CIRCLE and
-            self.circle.pointable.direction.angle_to(circle.normal) > Leap.PI/4
+            self.circle.pointable.direction.angle_to(self.circle.normal) > Leap.PI/4
         )
 
     def execute(self):
