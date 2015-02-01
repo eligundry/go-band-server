@@ -37,14 +37,14 @@ class GoBandListener(Leap.Listener):
 
     def init_list_commands(self):
         self.commands = [
+            SwipeUpCommand(),
+            SwipeRightCommand(),
+            SwipeDownCommand(),
+            SwipeLeftCommand(),
             SwipeUpLeftCommand(),
             SwipeDownLeftCommand(),
             SwipeUpRightCommand(),
             SwipeDownRightCommand(),
-            SwipeRightCommand(),
-            SwipeLeftCommand(),
-            SwipeUpCommand(),
-            SwipeDownCommand(),
             # ClockWiseCommand(),
             # CounterClockWiseCommand(),
         ]
@@ -56,8 +56,8 @@ class GoBandListener(Leap.Listener):
         controller.enable_gesture(Leap.Gesture.TYPE_SWIPE)
 
         # Tweak the default speeds
-        controller.config.set("Gesture.Swipe.MinLength", 100.0)
-        controller.config.set("Gesture.Swipe.MinVelocity", 750)
+        controller.config.set("Gesture.Swipe.MinLength", 10.0)
+        controller.config.set("Gesture.Swipe.MinVelocity", 1)
         controller.config.save()
 
     def on_frame(self, controller):
@@ -73,117 +73,88 @@ class GoBandListener(Leap.Listener):
         print "Exiting..."
         sys.exit(1)
 
-class SwipeUpLeftCommand():
+class BaseSwipeCommand():
+    name = None
+    swipe = None
+    code = None
+    min_y_val = -0.2
+    max_y_val = 0.2
+    min_x_val = -0.3
+    max_x_val = 0.3
+
+    def __str__(self):
+        return '%s (%s): [%s, %s, %s]' % (
+            self.name, self.code, self.swipe.direction[0],
+            self.swipe.direction[1], self.swipe.direction[2]
+        )
+
+    def execute(self):
+        return issue_request(self.code)
+
+class SwipeUpLeftCommand(BaseSwipeCommand):
     def __init__(self):
         self.name = 'swipeupleft'
-        self.swipe = None
         self.code = '1001'
 
-    def __str__(self):
-        return '%s (%s): [%s, %s, %s]' % (
-            self.name, self.code, self.swipe.direction[0],
-            self.swipe.direction[1], self.swipe.direction[2]
-        )
-
     def applicable(self, frame):
         self.swipe = SwipeGesture(frame.gestures()[0])
 
         return (
             self.swipe.state == Leap.Gesture.STATE_STOP and
             self.swipe.type == Leap.Gesture.TYPE_SWIPE and
-            self.swipe.direction[1] > 0 and
-            self.swipe.direction[0] > 0
+            self.min_x_val > self.swipe.direction[0] and
+            self.min_y_val < self.swipe.direction[1]
         )
 
-    def execute(self):
-        return issue_request(self.code)
-
-class SwipeUpRightCommand():
+class SwipeUpRightCommand(BaseSwipeCommand):
     def __init__(self):
         self.name = 'swipeupright'
-        self.swipe = None
         self.code = '1100'
 
-    def __str__(self):
-        return '%s (%s): [%s, %s, %s]' % (
-            self.name, self.code, self.swipe.direction[0],
-            self.swipe.direction[1], self.swipe.direction[2]
-        )
-
     def applicable(self, frame):
         self.swipe = SwipeGesture(frame.gestures()[0])
 
         return (
             self.swipe.state == Leap.Gesture.STATE_STOP and
             self.swipe.type == Leap.Gesture.TYPE_SWIPE and
-            self.swipe.direction[1] > 0 and
-            self.swipe.direction[0] < 0
+            self.min_x_val < self.swipe.direction[0] > self.max_x_val and
+            self.min_y_val < self.swipe.direction[1] > self.max_y_val
         )
 
-    def execute(self):
-        return issue_request(self.code)
-
-class SwipeDownLeftCommand():
+class SwipeDownLeftCommand(BaseSwipeCommand):
     def __init__(self):
         self.name = 'swipedownleft'
-        self.swipe = None
         self.code = '0011'
 
-    def __str__(self):
-        return '%s (%s): [%s, %s, %s]' % (
-            self.name, self.code, self.swipe.direction[0],
-            self.swipe.direction[1], self.swipe.direction[2]
-        )
-
     def applicable(self, frame):
         self.swipe = SwipeGesture(frame.gestures()[0])
 
         return (
             self.swipe.state == Leap.Gesture.STATE_STOP and
             self.swipe.type == Leap.Gesture.TYPE_SWIPE and
-            self.swipe.direction[1] < 0 and
-            self.swipe.direction[0] > 0
+            self.min_x_val > self.swipe.direction[0] and
+            self.min_y_val > self.swipe.direction[1]
         )
 
-    def execute(self):
-        return issue_request(self.code)
-
-class SwipeDownRightCommand():
+class SwipeDownRightCommand(BaseSwipeCommand):
     def __init__(self):
         self.name = 'swipedownright'
-        self.swipe = None
         self.code = '0110'
 
-    def __str__(self):
-        return '%s (%s): [%s, %s, %s]' % (
-            self.name, self.code, self.swipe.direction[0],
-            self.swipe.direction[1], self.swipe.direction[2]
-        )
-
     def applicable(self, frame):
         self.swipe = SwipeGesture(frame.gestures()[0])
 
         return (
             self.swipe.state == Leap.Gesture.STATE_STOP and
             self.swipe.type == Leap.Gesture.TYPE_SWIPE and
-            self.swipe.direction[1] < 0 and
-            self.swipe.direction[0] < 0
+            self.min_y_val > self.swipe.direction[1] > self.max_y_val and
+            self.min_x_val < self.swipe.direction[0] < self.max_x_val
         )
 
-    def execute(self):
-        return issue_request(self.code)
-
-class SwipeUpCommand():
+class SwipeUpCommand(BaseSwipeCommand):
     def __init__(self):
         self.name = 'swipeup'
-        self.swipe = None
         self.code = '1000'
-
-    def __str__(self):
-        return '%s (%s): [%s, %s, %s]' % (
-            self.name, self.code, self.swipe.direction[0],
-            self.swipe.direction[1], self.swipe.direction[2]
-        )
 
     def applicable(self, frame):
         self.swipe = SwipeGesture(frame.gestures()[0])
@@ -191,23 +162,14 @@ class SwipeUpCommand():
         return (
             self.swipe.state == Leap.Gesture.STATE_STOP and
             self.swipe.type == Leap.Gesture.TYPE_SWIPE and
+            self.min_x_val <= self.swipe.direction[0] <= self.max_x_val and
             self.swipe.direction[1] > 0
         )
 
-    def execute(self):
-        return issue_request(self.code)
-
-class SwipeDownCommand():
+class SwipeDownCommand(BaseSwipeCommand):
     def __init__(self):
         self.name = 'swipedown'
-        self.swipe = None
         self.code = '0010'
-
-    def __str__(self):
-        return '%s (%s): [%s, %s, %s]' % (
-            self.name, self.code, self.swipe.direction[0],
-            self.swipe.direction[1], self.swipe.direction[2]
-        )
 
     def applicable(self, frame):
         self.swipe = SwipeGesture(frame.gestures()[0])
@@ -215,64 +177,43 @@ class SwipeDownCommand():
         return (
             self.swipe.state == Leap.Gesture.STATE_STOP and
             self.swipe.type == Leap.Gesture.TYPE_SWIPE and
+            self.min_x_val <= self.swipe.direction[0] <= self.max_x_val and
             self.swipe.direction[1] < 0
         )
 
-    def execute(self):
-        return issue_request(self.code)
-
-class SwipeRightCommand():
+class SwipeRightCommand(BaseSwipeCommand):
     def __init__(self):
         self.name = 'swiperight'
-        self.swipe = None
         self.code = '0100'
 
-    def __str__(self):
-        return '%s (%s): [%s, %s, %s]' % (
-            self.name, self.code, self.swipe.direction[0],
-            self.swipe.direction[1], self.swipe.direction[2]
-        )
-
     def applicable(self, frame):
         self.swipe = SwipeGesture(frame.gestures()[0])
 
         return (
             self.swipe.state == Leap.Gesture.STATE_STOP and
             self.swipe.type == Leap.Gesture.TYPE_SWIPE and
-            self.swipe.direction[0] < 0
-        )
-
-    def execute(self):
-        return issue_request(self.code)
-
-class SwipeLeftCommand():
-    def __init__(self):
-        self.name = 'swipeleft'
-        self.swipe = None
-        self.code = '0001'
-
-    def __str__(self):
-        return '%s (%s): [%s, %s, %s]' % (
-            self.name, self.code, self.swipe.direction[0],
-            self.swipe.direction[1], self.swipe.direction[2]
-        )
-
-    def applicable(self, frame):
-        self.swipe = SwipeGesture(frame.gestures()[0])
-
-        return (
-            self.swipe.state == Leap.Gesture.STATE_STOP and
-            self.swipe.type == Leap.Gesture.TYPE_SWIPE and
+            self.min_y_val <= self.swipe.direction[1] <= self.max_y_val and
             self.swipe.direction[0] > 0
         )
 
-    def execute(self):
-        return issue_request(self.code)
+class SwipeLeftCommand(BaseSwipeCommand):
+    def __init__(self):
+        self.name = 'swipeleft'
+        self.code = '0001'
+
+    def applicable(self, frame):
+        self.swipe = SwipeGesture(frame.gestures()[0])
+
+        return (
+            self.swipe.state == Leap.Gesture.STATE_STOP and
+            self.swipe.type == Leap.Gesture.TYPE_SWIPE and
+            self.min_y_val <= self.swipe.direction[1] <= self.max_y_val and
+            self.swipe.direction[0] < 0
+        )
 
 class ClockWiseCommand():
     def __init__(self):
         self.name = 'clockwisecommand'
-        self.circle = None
         self.code = '1111'
 
     def __str__(self):
