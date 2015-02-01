@@ -45,8 +45,7 @@ class GoBandListener(Leap.Listener):
             SwipeDownLeftCommand(),
             SwipeUpRightCommand(),
             SwipeDownRightCommand(),
-            # ClockWiseCommand(),
-            # CounterClockWiseCommand(),
+            ClockWiseCommand(),
         ]
 
     def on_connect(self, controller):
@@ -67,7 +66,7 @@ class GoBandListener(Leap.Listener):
             for command in self.commands:
                 if command.applicable(frame):
                     print command
-                    return
+                    return command.execute()
 
     def on_disconnect(self, controller):
         print "Exiting..."
@@ -93,7 +92,7 @@ class BaseSwipeCommand():
 
 class SwipeUpLeftCommand(BaseSwipeCommand):
     def __init__(self):
-        self.name = 'swipeupleft'
+        self.name = 'swipe_up_left'
         self.code = '1001'
 
     def applicable(self, frame):
@@ -108,7 +107,7 @@ class SwipeUpLeftCommand(BaseSwipeCommand):
 
 class SwipeUpRightCommand(BaseSwipeCommand):
     def __init__(self):
-        self.name = 'swipeupright'
+        self.name = 'swipe_up_right'
         self.code = '1100'
 
     def applicable(self, frame):
@@ -123,7 +122,7 @@ class SwipeUpRightCommand(BaseSwipeCommand):
 
 class SwipeDownLeftCommand(BaseSwipeCommand):
     def __init__(self):
-        self.name = 'swipedownleft'
+        self.name = 'swipe_down_left'
         self.code = '0011'
 
     def applicable(self, frame):
@@ -138,7 +137,7 @@ class SwipeDownLeftCommand(BaseSwipeCommand):
 
 class SwipeDownRightCommand(BaseSwipeCommand):
     def __init__(self):
-        self.name = 'swipedownright'
+        self.name = 'swipe_down_right'
         self.code = '0110'
 
     def applicable(self, frame):
@@ -153,7 +152,7 @@ class SwipeDownRightCommand(BaseSwipeCommand):
 
 class SwipeUpCommand(BaseSwipeCommand):
     def __init__(self):
-        self.name = 'swipeup'
+        self.name = 'swipe_up'
         self.code = '1000'
 
     def applicable(self, frame):
@@ -168,7 +167,7 @@ class SwipeUpCommand(BaseSwipeCommand):
 
 class SwipeDownCommand(BaseSwipeCommand):
     def __init__(self):
-        self.name = 'swipedown'
+        self.name = 'swipe_down'
         self.code = '0010'
 
     def applicable(self, frame):
@@ -183,7 +182,7 @@ class SwipeDownCommand(BaseSwipeCommand):
 
 class SwipeRightCommand(BaseSwipeCommand):
     def __init__(self):
-        self.name = 'swiperight'
+        self.name = 'swipe_right'
         self.code = '0100'
 
     def applicable(self, frame):
@@ -198,7 +197,7 @@ class SwipeRightCommand(BaseSwipeCommand):
 
 class SwipeLeftCommand(BaseSwipeCommand):
     def __init__(self):
-        self.name = 'swipeleft'
+        self.name = 'swipe_left'
         self.code = '0001'
 
     def applicable(self, frame):
@@ -217,42 +216,14 @@ class ClockWiseCommand():
         self.code = '1111'
 
     def __str__(self):
-        return '%s (%s): [%s, %s, %s]' % (
-            self.name, self.code, self.circle.direction[0],
-            self.circle.direction[1], self.circle.direction[2]
-        )
+        return '%s (%s)' % (self.name, self.code)
 
     def applicable(self, frame):
         self.circle = CircleGesture(frame.gestures()[0])
 
         return (
             self.circle.state == Leap.Gesture.STATE_STOP and
-            self.circle.type == Leap.Gesture.TYPE_CIRCLE and
-            self.circle.pointable.direction.angle_to(self.circle.normal) <= Leap.PI/4
-        )
-
-    def execute(self):
-        return issue_request(self.code)
-
-class CounterClockWiseCommand():
-    def __init__(self):
-        self.name = 'counterclockwisecommand'
-        self.circle = None
-        self.code = '1111'
-
-    def __str__(self):
-        return '%s (%s): [%s, %s, %s]' % (
-            self.name, self.code, self.circle.direction[0],
-            self.circle.direction[1], self.circle.direction[2]
-        )
-
-    def applicable(self, frame):
-        self.circle = CircleGesture(frame.gestures()[0])
-
-        return (
-            self.circle.state == Leap.Gesture.STATE_STOP and
-            self.circle.type == Leap.Gesture.TYPE_CIRCLE and
-            self.circle.pointable.direction.angle_to(self.circle.normal) > Leap.PI/4
+            self.circle.type == Leap.Gesture.TYPE_CIRCLE
         )
 
     def execute(self):
